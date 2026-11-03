@@ -76,7 +76,7 @@ All 16 tests run against the real sandbox — none of them mock isolation. See
 ## Quickstart
 
 ```bash
-git clone <this repo> && cd safecell
+git clone git@github.com:Trish7891/Totes.git safecell && cd safecell
 python3 -m venv .venv && . .venv/bin/activate
 pip install -r requirements.txt
 sudo apt-get install -y bubblewrap        # the only system dependency
