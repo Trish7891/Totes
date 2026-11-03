@@ -82,6 +82,36 @@ which I can do once I have access or you can paste the same way.
 
 ---
 
+## B2. AWS instead of Vultr
+
+Technically fine, **but not rules-compliant for the Vultr track** — Challenge 1
+requires the app deployed on Vultr with Vultr Serverless Inference. Use this for
+other venues (e.g. the NEAR hackathon, which has no host requirement).
+
+EC2 console → Launch instance:
+
+- Region `eu-west-1` (SA latency) or `us-east-1` (cheapest)
+- AMI **Ubuntu Server 24.04 LTS x86_64**
+- Type **t3.small** (2 vCPU / 2 GiB, $0.0208/hr ≈ $2.50 for the build week).
+  t3.micro's 1 GiB is too tight for a 512 MB cell + Python + the server.
+- Key pair → **Import key pair**, paste the ed25519 key (no `.pem` exchanged)
+- Security group: SSH 22 from your IP only, HTTP 80 and HTTPS 443 open
+- Storage 20 GiB gp3
+- Advanced details → User data: paste `docs/cloud-init.yaml`, but change the
+  bootstrap invocation to pass `--public`:
+
+```yaml
+runcmd:
+  - curl -fsSL https://raw.githubusercontent.com/Trish7891/Totes/main/deploy/bootstrap.sh -o /root/bootstrap.sh
+  - bash /root/bootstrap.sh https://github.com/Trish7891/Totes.git --public
+```
+
+`--public` binds uvicorn to `0.0.0.0:80` so the instance's security group can
+reach it. Without the flag it binds `127.0.0.1:8000` and only a local proxy can
+see it. Add TLS (Caddy/nginx or an ALB) before calling the URL final.
+
+
+
 ## C. If Vultr really is off the table
 
 The rules for Challenge 1 say the web app must be deployed **on Vultr** and use

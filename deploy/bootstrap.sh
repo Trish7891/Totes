@@ -9,6 +9,8 @@
 set -euo pipefail
 
 REPO_URL="${1:-}"
+PUBLIC=0
+[[ "${2:-}" == "--public" ]] && PUBLIC=1
 APP_DIR=/opt/safecell
 SVC_USER=safecell
 
@@ -55,12 +57,15 @@ fi
 
 echo "==> env file"
 if [[ ! -f "$APP_DIR/.env" ]]; then
-  cat > "$APP_DIR/.env" <<'ENV'
+  cat > "$APP_DIR/.env" <<ENV
 # Fill these in to use a real model. Without them the deterministic
 # ScriptedPlanner handles the built-in demo tasks.
-SAFECELL_LLM_BASE_URL=https://api.vultrinference.com/v1
+SAFECELL_LLM_BASE_URL=
 SAFECELL_MODEL=
 SAFECELL_API_KEY=
+# Set by bootstrap: --public listens on all interfaces :80, otherwise localhost:8000
+SAFECELL_HOST=$([[ $PUBLIC -eq 1 ]] && echo 0.0.0.0 || echo 127.0.0.1)
+SAFECELL_PORT=$([[ $PUBLIC -eq 1 ]] && echo 80 || echo 8000)
 ENV
   chown "$SVC_USER:$SVC_USER" "$APP_DIR/.env"
   chmod 600 "$APP_DIR/.env"
@@ -79,12 +84,19 @@ ufw allow 443/tcp >/dev/null 2>&1 || true
 yes | ufw enable >/dev/null 2>&1 || true
 
 echo "==> health check"
-curl -fsS http://127.0.0.1:8000/api/health | python3 -m json.tool || {
+BIND=$(grep '^SAFECELL_HOST=' "$APP_DIR/.env" | cut -d= -f2)
+PORT=$(grep '^SAFECELL_PORT=' "$APP_DIR/.env" | cut -d= -f2)
+[[ "$BIND" == "0.0.0.0" ]] && BIND=127.0.0.1
+curl -fsS "http://${BIND}:${PORT}/api/health" | python3 -m json.tool || {
   echo "service did not come up; journalctl -u safecell -n 50" >&2
   exit 3
 }
 
 echo
-echo "SafeCell is running on 127.0.0.1:8000."
-echo "Expose it: install Caddy (https://caddyserver.com/docs/install) and use deploy/Caddyfile,"
-echo "or proxy through whatever you already run. Keep the 127.0.0.1 bind — do not expose :8000 directly."
+echo "SafeCell is listening on ${BIND}:${PORT}."
+if [[ "$PUBLIC" -eq 1 ]]; then
+  echo "Public mode: reachable at http://<this-host>/ . TLS still recommended for a demo URL."
+else
+  echo "Expose it: install Caddy (https://caddyserver.com/docs/install) and use deploy/Caddyfile,"
+  echo "or re-run with --public to listen on 0.0.0.0:80 behind a security group."
+fi
