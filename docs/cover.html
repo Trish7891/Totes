@@ -1,0 +1,38 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  @font-face{font-family:x;src:local('SF Pro Display'),local('Inter'),local('Helvetica'),local('DejaVu Sans');}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{width:1200px;height:630px;background:#0a0c10;font-family:x,system-ui,sans-serif;overflow:hidden;position:relative;color:#e6edf3}
+  .glow{position:absolute;width:900px;height:900px;border-radius:50%;filter:blur(120px);opacity:.35}
+  .g1{background:#6ee7b7;top:-520px;left:-260px}
+  .g2{background:#7dd3fc;bottom:-560px;right:-220px;opacity:.28}
+  .grid{position:absolute;inset:0;background-image:linear-gradient(#1a212b 1px,transparent 1px),linear-gradient(90deg,#1a212b 1px,transparent 1px);background-size:52px 52px;opacity:.5;
+        mask-image:radial-gradient(circle at 50% 40%,#000 25%,transparent 78%)}
+  .wrap{position:relative;padding:64px 72px;height:100%;display:flex;flex-direction:column;justify-content:center}
+  .lock{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#6ee7b7,#7dd3fc);position:relative;margin-bottom:30px}
+  .lock:after{content:"";position:absolute;inset:19px 17px 15px;border:3px solid #06231b;border-radius:3px}
+  .lock:before{content:"";position:absolute;width:16px;height:13px;border:3px solid #06231b;border-bottom:0;border-radius:8px 8px 0 0;top:11px;left:17px}
+  h1{font-size:76px;letter-spacing:-2.5px;line-height:.98;font-weight:700}
+  h1 em{font-style:normal;background:linear-gradient(90deg,#6ee7b7,#7dd3fc);-webkit-background-clip:text;background-clip:text;color:transparent}
+  p{font-size:25px;color:#8b98a8;margin-top:22px;max-width:780px;line-height:1.45}
+  .row{display:flex;gap:12px;margin-top:38px;flex-wrap:wrap}
+  .tag{font:15px/1 ui-monospace,monospace;color:#9fb0c4;border:1px solid #253040;border-radius:999px;padding:11px 18px;background:#0f131a}
+  .tag b{color:#6ee7b7;font-weight:600}
+  .stamp{position:absolute;right:72px;top:64px;text-align:right;font:13.5px/1.7 ui-monospace,monospace;color:#4d5a6b;letter-spacing:.3px}
+</style></head>
+<body>
+  <div class="glow g1"></div><div class="glow g2"></div><div class="grid"></div>
+  <div class="wrap">
+    <div class="lock"></div>
+    <h1>Real work.<br><em>Zero blast radius.</em></h1>
+    <p>SafeCell runs model-written code in a sealed, disposable cell — no host filesystem, no network, capped CPU and memory — and returns a hash-chained receipt proving what ran.</p>
+    <div class="row">
+      <div class="tag"><b>17</b> containment tests</div>
+      <div class="tag"><b>0</b> network routes</div>
+      <div class="tag"><b>bubblewrap</b> namespaces</div>
+      <div class="tag"><b>verified</b> receipts</div>
+    </div>
+    <div class="stamp">Vultr Agent Rush · Blast Radius Zero<br>safecell · agent that cannot leave the room</div>
+  </div>
+</body></html>
