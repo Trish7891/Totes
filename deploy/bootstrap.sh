@@ -36,6 +36,15 @@ sudo -u "$SVC_USER" "$APP_DIR/.venv/bin/pip" install -q --upgrade pip
 sudo -u "$SVC_USER" "$APP_DIR/.venv/bin/pip" install -q -r "$APP_DIR/requirements.txt"
 
 echo "==> verifying the sandbox actually works on this host"
+# Ubuntu 23.10+ ships kernel.apparmor_restrict_unprivileged_userns=1, which makes
+# bubblewrap's clone(CLONE_NEWUSER) fail. Lift it and persist the setting.
+if sysctl -n kernel.apparmor_restrict_unprivileged_userns 2>/dev/null | grep -q 1; then
+  echo "    lifting apparmor userns restriction"
+  sysctl -qw kernel.apparmor_restrict_unprivileged_userns=0 || true
+  grep -q '^kernel.apparmor_restrict_unprivileged_userns' /etc/sysctl.conf 2>/dev/null \
+    || echo 'kernel.apparmor_restrict_unprivileged_userns=0' >> /etc/sysctl.conf
+fi
+
 if ! sudo -u "$SVC_USER" "$APP_DIR/.venv/bin/python" -m safecell.cli doctor; then
   echo "!! bubblewrap cannot create namespaces on this VM." >&2
   echo "!! On some providers you must enable unprivileged userns:" >&2

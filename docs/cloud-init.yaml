@@ -1,0 +1,12 @@
+#cloud-config
+# Paste this into Vultr's "Cloud-Init User-Data" box at deploy time and the
+# instance installs and starts SafeCell with no console session needed.
+# Replace nothing: the repo below is the public one.
+package_update: true
+packages:
+  - git
+  - curl
+runcmd:
+  - curl -fsSL https://raw.githubusercontent.com/Trish7891/Totes/main/deploy/bootstrap.sh -o /root/bootstrap.sh
+  - bash /root/bootstrap.sh https://github.com/Trish7891/Totes.git
+  - echo "safecell bootstrap finished" > /root/safecell-bootstrap.done
