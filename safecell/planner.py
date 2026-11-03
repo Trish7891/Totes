@@ -190,8 +190,9 @@ class ScriptedPlanner:
                 Step(thought="Summarise the containment result.",
                      done=True,
                      answer=("All escape attempts were refused inside the cell: host paths "
-                             "absent, egress blocked at the socket layer, and the only "
-                             "writable location was /work, which is destroyed when the run ends.")),
+                             "were absent, egress was blocked at the socket layer, and the "
+                             "only writable places were the cell's own private /work and "
+                             "/tmp, both destroyed when the run ended.")),
             ]
         if any(k in t for k in ("csv", "data", "average", "analyse", "analyze", "sales")):
             return [

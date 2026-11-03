@@ -106,15 +106,18 @@ def _current_task_count() -> int:
     return total
 
 
-AMBIENT_TASKS = _current_task_count()
-
-
 def _limits(policy: Policy):
-    """Rlimits applied in the child before exec. Inherited by every process."""
+    """Rlimits applied in the child before exec. Inherited by every process.
+
+    The ambient task count is sampled per execution, not at import: it rises as
+    the host gets busier, and a stale baseline makes clone() fail with EAGAIN
+    before the cell can even start.
+    """
+
+    nproc = _current_task_count() + policy.max_processes + 16
 
     def apply() -> None:
         mb = 1024 * 1024
-        nproc = AMBIENT_TASKS + policy.max_processes
         resource.setrlimit(resource.RLIMIT_CPU, (policy.cpu_seconds, policy.cpu_seconds))
         resource.setrlimit(resource.RLIMIT_AS, (policy.memory_mb * mb, policy.memory_mb * mb))
         resource.setrlimit(resource.RLIMIT_FSIZE, (policy.max_file_mb * mb, policy.max_file_mb * mb))

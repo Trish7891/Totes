@@ -152,5 +152,15 @@ class ContainmentTests(unittest.TestCase):
         self.assertLess(visible, 20, f"cell can see {visible} processes; expected a private namespace")
 
 
+    def test_concurrent_executions_both_start(self):
+        """A busy host must not starve a new cell of namespace headroom."""
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
+            futures = [pool.submit(run, "import os; print('OK', os.getpid())\n") for _ in range(6)]
+            results = [f.result() for f in futures]
+        self.assertEqual([r.ok for r in results], [True] * 6,
+                         [r.stderr for r in results])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
