@@ -1,0 +1,22 @@
+[Unit]
+Description=SafeCell contained agent execution
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=safecell
+WorkingDirectory=/opt/safecell
+EnvironmentFile=/opt/safecell/.env
+# bubblewrap needs user namespaces; do not add filesystem sandboxing here that
+# blocks clone(CLONE_NEW*) or the service cannot create cells at all.
+ExecStart=/opt/safecell/.venv/bin/uvicorn safecell.api:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=2
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/safecell
+
+[Install]
+WantedBy=multi-user.target

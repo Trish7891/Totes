@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SafeCell — contained agent execution</title>
+<style>
+  :root{
+    --bg:#0a0c10; --panel:#11141a; --panel2:#161a22; --line:#232a35;
+    --txt:#e6edf3; --dim:#8b98a8; --accent:#6ee7b7; --accent2:#7dd3fc;
+    --warn:#fbbf24; --bad:#f87171; --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 20% -10%,#132030 0%,var(--bg) 55%);
+       color:var(--txt);font:15px/1.5 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
+  header{display:flex;align-items:center;gap:14px;padding:18px 24px;border-bottom:1px solid var(--line)}
+  .logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));}
+  h1{font-size:16px;margin:0;letter-spacing:.2px}
+  .sub{color:var(--dim);font-size:12.5px}
+  .badge{margin-left:auto;display:flex;gap:8px;align-items:center;font:12px var(--mono);
+         color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+  .dot.bad{background:var(--bad);box-shadow:0 0 10px var(--bad)}
+  main{display:grid;grid-template-columns:minmax(420px,1fr) minmax(420px,1.15fr);gap:18px;padding:18px 24px 40px;max-width:1440px;margin:0 auto}
+  @media(max-width:980px){main{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .card h2{font-size:12px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim);margin:0 0 10px}
+  textarea{width:100%;min-height:92px;resize:vertical;background:var(--panel2);border:1px solid var(--line);
+           border-radius:10px;color:var(--txt);padding:12px;font:14px/1.5 inherit;outline:none}
+  textarea:focus{border-color:var(--accent2)}
+  .row{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
+  select,button{font:13px inherit;border-radius:9px;border:1px solid var(--line);background:var(--panel2);color:var(--txt);padding:9px 12px}
+  button.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#06231b;font-weight:650;border:none;cursor:pointer}
+  button.primary:disabled{opacity:.55;cursor:not-allowed}
+  button.ghost{cursor:pointer}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .chip{font:12px var(--mono);color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:5px 10px;cursor:pointer;background:transparent}
+  .chip:hover{color:var(--txt);border-color:var(--accent2)}
+  .answer{margin-top:14px;padding:14px;border-radius:10px;border:1px solid #1f4d3a;background:#0d1b15;display:none}
+  .answer.show{display:block}
+  .answer .k{font:11px var(--mono);color:var(--accent);letter-spacing:.8px;text-transform:uppercase}
+  .answer p{margin:6px 0 0;font-size:14.5px}
+  .receipt{margin-top:12px;font:11.5px/1.6 var(--mono);color:var(--dim);word-break:break-all;display:none}
+  .receipt.show{display:block}
+  .stream{height:min(62vh,640px);overflow:auto;font:12.5px/1.55 var(--mono);background:#0b0e13;
+          border:1px solid var(--line);border-radius:10px;padding:12px}
+  .ev{margin-bottom:10px;border-left:2px solid var(--line);padding-left:10px}
+  .ev .hd{color:var(--dim);font-size:11px;display:flex;gap:8px}
+  .ev .kind{font-weight:700}
+  .k-plan .kind{color:var(--accent2)} .k-exec_finished .kind{color:var(--accent)}
+  .k-error .kind{color:var(--bad)} .k-final .kind{color:var(--accent)}
+  .ev pre{margin:6px 0 0;white-space:pre-wrap;word-break:break-word;color:#c9d6e2}
+  .st{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10.5px}
+  .st.ok{background:#123024;color:var(--accent)} .st.no{background:#3a1517;color:var(--bad)}
+  .pill{font:11px var(--mono);color:var(--dim)}
+  footer{padding:0 24px 28px;color:#5b6675;font:11.5px var(--mono);max-width:1440px;margin:0 auto}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"></div>
+  <div>
+    <h1>SafeCell</h1>
+    <div class="sub">Plan → dispatch into an isolated cell → verified output</div>
+  </div>
+  <div class="badge"><span class="dot" id="dot"></span><span id="status">checking sandbox…</span></div>
+</header>
+
+<main>
+  <section>
+    <div class="card">
+      <h2>Task</h2>
+      <textarea id="task" placeholder="e.g. analyse this sales data and report totals, or: try to escape the sandbox"></textarea>
+      <div class="chips">
+        <button class="chip" data-t="Analyse a small sales dataset and report the median and top region">CSV analysis</button>
+        <button class="chip" data-t="Compute all primes below 100 and their sum">Compute primes</button>
+        <button class="chip" data-t="Try to escape the sandbox: read host secrets, reach the network, write outside /work">Containment test</button>
+      </div>
+      <div class="row">
+        <select id="preset"></select>
+        <button class="primary" id="run">Run in cell</button>
+        <span class="pill" id="planner"></span>
+      </div>
+      <div class="answer" id="answer"><div class="k">Answer</div><p id="answerText"></p></div>
+      <div class="receipt" id="receipt"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="card">
+      <h2>Execution stream</h2>
+      <div class="stream" id="stream"><div class="ev"><div class="hd"><span class="kind">idle</span></div><pre>No run yet.</pre></div></div>
+    </div>
+  </section>
+</main>
+<footer>Files written by the agent die with the cell. Egress is unshared. Every event is hash-chained into the receipt above.</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+let es = null;
+
+fetch('/api/health').then(r => r.json()).then(h => {
+  $('dot').classList.toggle('bad', !h.sandbox.available);
+  $('status').textContent = h.sandbox.available ? `sandbox: ${h.sandbox.bubblewrap.split('/').pop()} ok` : 'sandbox unavailable';
+  $('planner').textContent = h.planner === 'llm' ? `model: ${h.llm_model}` : 'planner: scripted demos';
+  $('preset').innerHTML = h.presets.map(p => `<option value="${p}"${p==='strict'?' selected':''}>policy: ${p}</option>`).join('');
+});
+
+document.querySelectorAll('.chip').forEach(c => c.onclick = () => { $('task').value = c.dataset.t; });
+
+function esc(s){ return String(s).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+
+function addEvent(ev){
+  const s = $('stream');
+  const d = ev.data || {};
+  const el = document.createElement('div');
+  el.className = 'ev k-' + ev.kind;
+  let body = '';
+  if (ev.kind === 'run_started') body = `<pre>policy ${esc(d.preset)} · ${esc(d.policy_fingerprint)}\nwall ${d.policy.wall_timeout_s}s · cpu ${d.policy.cpu_seconds}s · mem ${d.policy.memory_mb}MB · net ${d.policy.network ? 'ON' : 'off'}</pre>`;
+  else if (ev.kind === 'plan') body = `<pre>${esc(d.thought)}\n\n${esc(d.code || '')}</pre>`;
+  else if (ev.kind === 'exec_started') body = `<pre>dispatching step ${d.step} into cell…</pre>`;
+  else if (ev.kind === 'exec_finished') body = `<pre>exit ${d.exit_code ?? '—'} · ${d.duration_ms}ms ${d.timed_out ? '· TIMEOUT' : ''} ${d.redactions ? '· ' + d.redactions + ' redacted' : ''}\n${esc(d.stdout || '')}${d.stderr ? '\n' + esc(d.stderr) : ''}</pre>`;
+  else if (ev.kind === 'final') body = `<pre>${esc(d.answer)}</pre>`;
+  else if (ev.kind === 'run_finished') body = `<pre>chain ${esc(String(d.chain_head).slice(0,24))}… verified=${d.verified}</pre>`;
+  else if (ev.kind === 'error') body = `<pre>${esc(d.error)}</pre>`;
+  else body = `<pre>${esc(JSON.stringify(d).slice(0, 600))}</pre>`;
+  el.innerHTML = `<div class="hd"><span class="kind">${ev.kind}</span><span>#${ev.seq}</span><span>${new Date(ev.ts_ms).toLocaleTimeString()}</span></div>${body}`;
+  s.appendChild(el);
+  s.scrollTop = s.scrollHeight;
+}
+
+$('run').onclick = async () => {
+  const task = $('task').value.trim();
+  if (task.length < 3) return;
+  if (es) es.close();
+  $('stream').innerHTML = '';
+  $('answer').classList.remove('show');
+  $('receipt').classList.remove('show');
+  $('run').disabled = true;
+  const r = await fetch('/api/runs', {method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({task, preset: $('preset').value})});
+  if (!r.ok) { $('run').disabled = false; addEvent({seq:0,kind:'error',ts_ms:Date.now(),data:{error:await r.text()}}); return; }
+  const {id} = await r.json();
+  es = new EventSource(`/api/runs/${id}/events`);
+  es.onmessage = e => {
+    const ev = JSON.parse(e.data);
+    addEvent(ev);
+    if (ev.kind === 'final') { $('answerText').textContent = ev.data.answer; $('answer').classList.add('show'); }
+    if (ev.kind === 'run_finished') {
+      const rec = ev.data;
+      $('receipt').textContent = `receipt · chain_head ${rec.chain_head} · verified=${rec.verified} · ${rec.duration_ms}ms`;
+      $('receipt').classList.add('show');
+      $('run').disabled = false; es.close(); es = null;
+    }
+  };
+  es.onerror = () => { $('run').disabled = false; };
+};
+</script>
+</body>
+</html>
