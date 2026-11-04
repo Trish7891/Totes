@@ -8,5 +8,5 @@ packages:
   - curl
 runcmd:
   - curl -fsSL https://raw.githubusercontent.com/Trish7891/Totes/main/deploy/bootstrap.sh -o /root/bootstrap.sh
-  - bash /root/bootstrap.sh https://github.com/Trish7891/Totes.git
+  - bash /root/bootstrap.sh https://github.com/Trish7891/Totes.git --public
   - echo "safecell bootstrap finished" > /root/safecell-bootstrap.done

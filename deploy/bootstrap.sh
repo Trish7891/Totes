@@ -71,6 +71,17 @@ ENV
   chmod 600 "$APP_DIR/.env"
 fi
 
+# Reconcile the bind on every run, not just on first install: a re-run with
+# --public must actually move the listener off localhost, otherwise the
+# security group looks open while nothing is answering on :80.
+WANT_HOST=$([[ $PUBLIC -eq 1 ]] && echo 0.0.0.0 || echo 127.0.0.1)
+WANT_PORT=$([[ $PUBLIC -eq 1 ]] && echo 80 || echo 8000)
+sed -i "s|^SAFECELL_HOST=.*|SAFECELL_HOST=${WANT_HOST}|" "$APP_DIR/.env"
+sed -i "s|^SAFECELL_PORT=.*|SAFECELL_PORT=${WANT_PORT}|" "$APP_DIR/.env"
+grep -q '^SAFECELL_HOST=' "$APP_DIR/.env" || echo "SAFECELL_HOST=${WANT_HOST}" >> "$APP_DIR/.env"
+grep -q '^SAFECELL_PORT=' "$APP_DIR/.env" || echo "SAFECELL_PORT=${WANT_PORT}" >> "$APP_DIR/.env"
+echo "    bind ${WANT_HOST}:${WANT_PORT}"
+
 echo "==> systemd unit"
 install -m 644 "$APP_DIR/deploy/safecell.service" /etc/systemd/system/safecell.service
 systemctl daemon-reload
