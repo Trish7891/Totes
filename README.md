@@ -7,7 +7,9 @@ accomplish it, and that code runs inside a sealed, disposable cell. The output
 you see is real executed output, and every run ends with a hash-chained receipt
 that proves the log you read is the log that ran.
 
-Built for the **Vultr Agent Rush — Blast Radius Zero** track: containment is not
+**Live:** https://192-248-147-190.sslip.io/ · **Demo video (84s):** [docs/video/demo.mp4](docs/video/demo.mp4)
+
+Built for the **Vultr Agent Rush: Blast Radius Zero** track
 a feature we added, it is the product.
 
 ---

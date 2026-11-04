@@ -1,5 +1,11 @@
 # Submission copy (paste into lablab)
 
+## Links
+
+- Live demo: https://192-248-147-190.sslip.io/
+- Demo video (84s, narrated): https://github.com/Trish7891/Totes/blob/main/docs/video/demo.mp4
+- Repo: https://github.com/Trish7891/Totes
+
 ## Project title
 SafeCell — real work, zero blast radius
 
