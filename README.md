@@ -69,9 +69,28 @@ mediated by one function, `exec_in_cell`, and there is no trusted bypass.
 | Disposable state | Fresh tmpfs per run, destroyed after | `test_workspace_is_ephemeral` |
 | Process isolation | PID namespace owned by the cell | `test_pid_namespace_isolated` |
 | Tamper-evident history | Each event hashes the previous one | `test_policy_fingerprint_recorded` + `/api/runs/{id}/verify` |
+| Declared capabilities | Manifest generated from the enforced policy, hashed into the receipt | `test_declared_limits_match_policy`, `test_kernel_limit_is_disclosed` |
 
-All 16 tests run against the real sandbox — none of them mock isolation. See
+All 25 tests run against the real sandbox — none of them mock isolation. See
 [CONTAINMENT.md](CONTAINMENT.md) for the captured output.
+
+## Permission manifest
+
+Every run declares its capabilities up front, and the declaration is generated
+from the same `Policy` object the sandbox enforces — there is no second place to
+keep them in sync. The manifest (schema `safecell.manifest/v1`) lists what is
+granted (filesystem, network, compute, environment, secret handling), what is
+denied and why, and — importantly — what is *not* denied (kernel exploits, on a
+shared kernel). Its hash is emitted at run start and carried in the receipt, so a
+run is tied to an exact statement of capabilities.
+
+```bash
+python -m safecell.cli policy strict          # human-readable manifest
+curl localhost:8000/api/policy/strict         # json + hash
+curl localhost:8000/api/policy/strict/manifest.md
+```
+
+See [docs/POLICY.md](docs/POLICY.md) for the `strict` preset rendered.
 
 ## Quickstart
 
@@ -115,6 +134,8 @@ never fail because a model was slow.
 | `GET` | `/api/runs/{id}/events` | SSE stream (replays history, then follows live) |
 | `GET` | `/api/runs/{id}/verify` | Re-verifies the event chain; `409` if tampered |
 | `GET` | `/api/health` | Sandbox availability + planner backend |
+| `GET` | `/api/policy/{preset}` | Permission manifest + its hash |
+| `GET` | `/api/policy/{preset}/manifest.md` | Same manifest as markdown |
 
 Presets: `paranoid`, `strict` (default), `default`, `demo`.
 

@@ -8,9 +8,10 @@ import time
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
+from . import manifest as manifest_mod
 from .policy import PRESETS
 from .planner import LLMPlanner
 from .runner import STORE, start
@@ -43,6 +44,25 @@ def health():
         "llm_model": llm.model or None,
         "presets": sorted(PRESETS),
     }
+
+
+def _manifest_for(preset: str) -> tuple[dict, str]:
+    if preset not in PRESETS:
+        raise HTTPException(404, f"unknown preset; choose from {sorted(PRESETS)}")
+    man = manifest_mod.build(PRESETS[preset], preset)
+    return man, manifest_mod.manifest_hash(man)
+
+
+@app.get("/api/policy/{preset}")
+def get_manifest(preset: str):
+    man, h = _manifest_for(preset)
+    return {"manifest_hash": h, "manifest": man}
+
+
+@app.get("/api/policy/{preset}/manifest.md")
+def get_manifest_md(preset: str):
+    man, h = _manifest_for(preset)
+    return PlainTextResponse(manifest_mod.to_markdown(man, h), media_type="text/markdown")
 
 
 @app.post("/api/runs")

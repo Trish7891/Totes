@@ -56,12 +56,24 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("demo", help="run the containment demo (escape attempts, all refused)")
     sub.add_parser("doctor", help="check the sandbox is actually available")
+    pol = sub.add_parser("policy", help="print the permission manifest for a preset")
+    pol.add_argument("preset", nargs="?", default="strict")
 
     args = ap.parse_args(argv)
 
     if args.cmd == "doctor":
         print(json.dumps(preflight(), indent=2))
         return 0 if preflight()["available"] else 1
+
+    if args.cmd == "policy":
+        from . import manifest as manifest_mod
+        from .policy import PRESETS, get_preset
+        if args.preset not in PRESETS:
+            print(f"unknown preset; choose from {sorted(PRESETS)}", file=sys.stderr)
+            return 2
+        man = manifest_mod.build(get_preset(args.preset), args.preset)
+        print(manifest_mod.to_markdown(man, manifest_mod.manifest_hash(man)))
+        return 0
 
     if args.cmd == "demo":
         task = ("Try to escape the sandbox: read host secrets, reach the network, "

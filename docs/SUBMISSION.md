@@ -34,7 +34,14 @@ history. `GET /api/runs/{id}/verify` re-derives the chain and returns 409 if it
 has been tampered with. Judges — and users — can check the log instead of
 trusting it.
 
-**Evidence.** 17 containment tests, none of which mock isolation: host paths
+**Declared, not implied.** Each run carries a permission manifest — schema
+`safecell.manifest/v1` — listing granted capabilities (filesystem, network,
+compute, environment, secret handling), denied ones with the reason, and the one
+thing the boundary does *not* stop (kernel exploitation on a shared kernel). The
+manifest is generated from the same policy object the sandbox enforces, so
+declare-vs-enforce cannot drift, and its hash rides in the receipt.
+
+**Evidence.** 25 containment and manifest tests, none of which mock isolation: host paths
 absent, host write blocked and verified absent afterwards, TCP and DNS both
 raising, host secrets never crossing into the cell, key-shaped output redacted,
 CPU burner killed at the rlimit, sleeper killed by the wall clock, 1 GB allocation

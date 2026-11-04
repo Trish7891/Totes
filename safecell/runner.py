@@ -13,6 +13,7 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any
 
+from . import manifest as manifest_mod
 from .events import EventLog
 from .planner import PlannerError, make_planner
 from .policy import get_preset
@@ -67,6 +68,8 @@ class Run:
             "steps": self.steps,
             "receipt": self.log.receipt({
                 "policy_fingerprint": policy.fingerprint(),
+                "manifest_hash": manifest_mod.manifest_hash(
+                    manifest_mod.build(policy, self.preset)),
                 "policy": {
                     "wall_timeout_s": policy.wall_timeout_s,
                     "cpu_seconds": policy.cpu_seconds,
@@ -106,6 +109,8 @@ STORE = RunStore()
 def execute(run: Run) -> None:
     """Run the agent loop to completion. Safe to call on a worker thread."""
     policy = get_preset(run.preset)
+    man = manifest_mod.build(policy, run.preset)
+    man_hash = manifest_mod.manifest_hash(man)
     run.status = "running"
     run.started_ms = int(time.time() * 1000)
     run.emit("run_started", {
@@ -120,6 +125,11 @@ def execute(run: Run) -> None:
             "network": policy.network,
         },
         "sandbox": preflight(),
+    })
+
+    run.emit("policy_manifest", {
+        "manifest_hash": man_hash,
+        "manifest": man,
     })
 
     planner, kind = make_planner(run.planner_kind)
