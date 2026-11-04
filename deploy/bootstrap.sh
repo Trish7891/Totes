@@ -47,11 +47,13 @@ if sysctl -n kernel.apparmor_restrict_unprivileged_userns 2>/dev/null | grep -q 
     || echo 'kernel.apparmor_restrict_unprivileged_userns=0' >> /etc/sysctl.conf
 fi
 
-if ! sudo -u "$SVC_USER" "$APP_DIR/.venv/bin/python" -m safecell.cli doctor; then
-  echo "!! bubblewrap cannot create namespaces on this VM." >&2
-  echo "!! On some providers you must enable unprivileged userns:" >&2
-  echo "!!   sysctl -w kernel.unprivileged_userns_clone=1" >&2
-  echo "!! SafeCell will refuse to execute until this is fixed (by design)." >&2
+# Run from the project root: the venv has the deps but the package itself is
+# imported from the working directory, not installed into site-packages.
+if ! ( cd "$APP_DIR" && sudo -u "$SVC_USER" ./.venv/bin/python -m safecell.cli doctor ); then
+  echo "!! the sandbox self-check failed on this host." >&2
+  echo "!! If the message above is 'no namespaces', enable unprivileged userns:" >&2
+  echo "!!   sysctl -w kernel.apparmor_restrict_unprivileged_userns=0" >&2
+  echo "!! SafeCell refuses to execute rather than running unsandboxed (by design)." >&2
   exit 2
 fi
 
