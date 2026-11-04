@@ -252,7 +252,26 @@ class ScriptedPlanner:
         if not self._plan:
             self._plan = self._choose(task)
         idx = min(len(history), len(self._plan) - 1)
-        return self._plan[idx]
+        step = self._plan[idx]
+
+        # Never report a scripted conclusion that the execution did not support.
+        # If any step failed inside the cell, the honest answer is that nothing
+        # was proven — a refused probe and a failed probe look alike in a log
+        # unless you say which one happened.
+        failures = [h for h in history
+                    if (h.get("observation") or {}).get("exit_code") not in (0, None)]
+        if step.done and failures:
+            first = (failures[0].get("observation") or {})
+            return Step(
+                thought="Report that the probes did not execute.",
+                done=True,
+                answer=(
+                    f"{len(failures)} of {len(history)} executions failed inside the cell, "
+                    f"so nothing is proven about containment here. First error: "
+                    f"{(first.get('stderr') or '').strip()[:200]}"
+                ),
+            )
+        return step
 
 
 def make_planner(prefer: str = "auto"):

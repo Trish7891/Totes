@@ -14,10 +14,9 @@ ExecStart=/opt/safecell/.venv/bin/uvicorn safecell.api:app --host ${SAFECELL_HOS
 Restart=always
 RestartSec=2
 NoNewPrivileges=yes
-# Binding to :80 as a non-root user needs exactly this one capability and
-# nothing more. Without it uvicorn dies with EACCES and systemd restart-loops.
-AmbientCapabilities=CAP_NET_BIND_SERVICE
-CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+# NOTE: do NOT add AmbientCapabilities here. A bwrap process holding any
+# capability aborts with "Unexpected capabilities but not setuid", so the cell
+# could never start. Bind a high port and let a proxy own 80/443 instead.
 PrivateTmp=yes
 ProtectSystem=strict
 ReadWritePaths=/opt/safecell
