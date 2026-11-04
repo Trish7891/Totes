@@ -4,6 +4,7 @@
 
 - Live demo: https://192-248-147-190.sslip.io/
 - Demo video (84s, narrated): https://github.com/Trish7891/Totes/blob/main/docs/video/demo.mp4
+- Slide deck (9 slides, 16:9): https://github.com/Trish7891/Totes/blob/main/docs/safecell-deck.pptx
 - Repo: https://github.com/Trish7891/Totes
 
 ## Project title

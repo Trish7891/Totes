@@ -7,7 +7,7 @@ accomplish it, and that code runs inside a sealed, disposable cell. The output
 you see is real executed output, and every run ends with a hash-chained receipt
 that proves the log you read is the log that ran.
 
-**Live:** https://192-248-147-190.sslip.io/ · **Demo video (84s):** [docs/video/demo.mp4](docs/video/demo.mp4)
+**Live:** https://192-248-147-190.sslip.io/ · **Demo video (84s):** [docs/video/demo.mp4](docs/video/demo.mp4) · **Slide deck:** [docs/safecell-deck.pptx](docs/safecell-deck.pptx)
 
 Built for the **Vultr Agent Rush: Blast Radius Zero** track
 a feature we added, it is the product.

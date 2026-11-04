@@ -1,0 +1,177 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>SafeCell deck</title>
+<style>
+  :root{--bg:#0a0c10;--panel:#11141a;--line:#232a35;--txt:#e6edf3;--dim:#8b98a8;--acc:#6ee7b7;--acc2:#7dd3fc;--bad:#f87171;--warn:#fbbf24}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#05070a;font-family:"Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--txt)}
+  .slide{width:1280px;height:720px;background:radial-gradient(1100px 520px at 15% -10%,#132030 0%,var(--bg) 60%);position:relative;overflow:hidden;
+         padding:64px 80px;display:flex;flex-direction:column;justify-content:center;page-break-after:always;margin:0 auto 24px}
+  .grid{position:absolute;inset:0;background-image:linear-gradient(#1a212b 1px,transparent 1px),linear-gradient(90deg,#1a212b 1px,transparent 1px);
+        background-size:56px 56px;opacity:.35;mask-image:radial-gradient(circle at 50% 40%,#000 20%,transparent 80%)}
+  .k{font:600 12px/1 ui-monospace,Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--acc);margin-bottom:22px}
+  h1{font-size:68px;letter-spacing:-2.4px;line-height:1.02;font-weight:750}
+  h1 em{font-style:normal;background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  h2{font-size:40px;letter-spacing:-1.2px;line-height:1.15;font-weight:700;margin-bottom:26px}
+  p.lead{font-size:22px;color:var(--dim);line-height:1.5;max-width:900px;margin-top:22px}
+  .row{display:flex;gap:18px;margin-top:8px}
+  .col{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px}
+  .col h3{font-size:17px;font-weight:700;margin-bottom:10px}
+  .col p{font-size:15px;color:var(--dim);line-height:1.55}
+  .num{font:700 13px ui-monospace,monospace;color:var(--acc2);margin-bottom:12px}
+  ul{list-style:none}
+  li{font-size:19px;line-height:1.6;color:#cbd5e1;display:flex;gap:14px;margin:12px 0}
+  li b{color:var(--txt);font-weight:650}
+  li .mk{color:var(--acc);flex:0 0 18px}
+  li.no .mk{color:var(--bad)}
+  .mono{font-family:ui-monospace,Menlo,monospace}
+  .tagrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:30px}
+  .tag{font:13px ui-monospace,monospace;color:#9fb0c4;border:1px solid #253040;border-radius:999px;padding:10px 16px;background:#0f131a}
+  .tag b{color:var(--acc)}
+  .foot{position:absolute;left:80px;bottom:38px;font:12px ui-monospace,monospace;color:#4d5a6b}
+  .page{position:absolute;right:80px;bottom:38px;font:12px ui-monospace,monospace;color:#4d5a6b}
+  .big{font-size:96px;font-weight:800;letter-spacing:-4px;background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1}
+  .kpi{display:flex;gap:44px;margin-top:26px}
+  .kpi div{min-width:150px}
+  .kpi small{display:block;font:12px ui-monospace,monospace;color:#5f6d7e;margin-top:8px;letter-spacing:.1em;text-transform:uppercase}
+  .code{background:#0b0e13;border:1px solid var(--line);border-radius:10px;padding:14px 16px;font:13px/1.65 ui-monospace,monospace;color:#c9d6e2;white-space:pre}
+</style></head>
+<body>
+
+<div class="slide" id="s1">
+  <div class="grid"></div>
+  <div class="k">Vultr Agent Rush · Blast Radius Zero</div>
+  <h1>Real work.<br><em>Zero blast radius.</em></h1>
+  <p class="lead">A web agent that plans, writes and runs real code — inside a sealed, disposable cell — and hands back a hash-chained receipt.</p>
+  <div class="tagrow"><div class="tag"><b>Live</b> 192-248-147-190.sslip.io</div><div class="tag"><b>84s</b> demo video</div><div class="tag"><b>25</b> containment tests</div></div>
+  <div class="page">01</div>
+</div>
+
+<div class="slide" id="s2">
+  <div class="grid"></div>
+  <div class="k">The problem</div>
+  <h2>An agent that executes is a product —<br>and a liability.</h2>
+  <ul>
+    <li><span class="mk">▸</span><span>A model with a shell can read <b>~/.ssh</b>, charge a card, or delete a table.</span></li>
+    <li><span class="mk">▸</span><span>Installed "skills" run with <b>full agent permissions</b> — one agent scanned 286 community skills and found a credential stealer in a weather skill.</span></li>
+    <li><span class="mk">▸</span><span>Most products answer this with <b>"trust us."</b> None of them ship proof.</span></li>
+  </ul>
+  <p class="lead" style="margin-top:34px">Containment-first is the product, not a feature bolted on afterwards.</p>
+  <div class="page">02</div>
+</div>
+
+<div class="slide" id="s3">
+  <div class="grid"></div>
+  <div class="k">What it does</div>
+  <h2>Task → cell → verified answer</h2>
+  <div class="row">
+    <div class="col"><div class="num">01</div><h3>Plan</h3><p>A model turns the task into a small Python program. It never runs code itself.</p></div>
+    <div class="col"><div class="num">02</div><h3>Dispatch</h3><p>The program runs in a fresh cell: own namespaces, no network, no host filesystem, capped cpu/memory/disk.</p></div>
+    <div class="col"><div class="num">03</div><h3>Verify</h3><p>Real stdout returns, scrubbed of credentials, and the run ends with a hash-chained receipt you can re-verify.</p></div>
+  </div>
+  <p class="lead" style="margin-top:30px">Every action goes through one executor. There is no trusted bypass and no "unsafe mode".</p>
+  <div class="page">03</div>
+</div>
+
+<div class="slide" id="s4">
+  <div class="grid"></div>
+  <div class="k">Architecture</div>
+  <h2>Control layer, planner, cell, verifier</h2>
+  <div class="code">browser ──▶ FastAPI control layer (Vultr VM)
+             · run store   · SSE event stream
+             · hash-chained receipt per run
+                        │ plan(task) → code
+                        ▼
+                 Planner (model)  ──▶  Vultr Serverless Inference
+                        │ code (never executed in-process)
+                        ▼
+                 CELL  bubblewrap, per run, disposable
+                 ├─ new PID / IPC / UTS / net namespaces
+                 ├─ no network · host paths absent
+                 ├─ /usr /etc read-only · tmpfs /work
+                 └─ rlimits: cpu, mem, fsize, nproc, nofile
+                        │ stdout/stderr (redacted, capped)
+                        ▼
+                 Verifier → receipt {chain_head, policy, manifest}</div>
+  <div class="page">04</div>
+</div>
+
+<div class="slide" id="s5">
+  <div class="grid"></div>
+  <div class="k">Containment model</div>
+  <h2>Every claim has a test</h2>
+  <ul>
+    <li><span class="mk">✓</span><span>No host filesystem — <span class="mono" style="color:#8b98a8">/home, /root, /mnt</span> never bound, so they <b>do not exist</b></span></li>
+    <li><span class="mk">✓</span><span>No egress, no DNS — <span class="mono" style="color:#8b98a8">unshare-net</span>, verified by a failing socket and a failing resolver</span></li>
+    <li><span class="mk">✓</span><span>Host secrets never cross in; key-shaped output is redacted on the way out</span></li>
+    <li><span class="mk">✓</span><span>CPU, wall clock, memory, file size, process count all capped; workspace destroyed per call</span></li>
+    <li class="no"><span class="mk">✕</span><span><b>Not</b> claimed: kernel isolation. Namespaces share the kernel — a microVM backend is the upgrade path, and the UI says so.</span></li>
+  </ul>
+  <div class="page">05</div>
+</div>
+
+<div class="slide" id="s6">
+  <div class="grid"></div>
+  <div class="k">Evidence</div>
+  <h2>Refused, on the live box</h2>
+  <div class="code">$ POST /api/runs  {"task":"try to escape the sandbox","preset":"strict"}
+
+step 1  exit=0  88ms
+   /etc/shadow: BLOCKED PermissionError
+   /home:       BLOCKED FileNotFoundError
+step 2  exit=0 183ms
+   EGRESS: BLOCKED URLError      DNS: BLOCKED gaierror
+step 3  exit=0  78ms
+   /home/trishan/payload.sh: BLOCKED FileNotFoundError
+
+receipt  chain_head 68f29886…414c   verified=true</div>
+  <div class="kpi">
+    <div><div class="big">25</div><small>tests, none mocked</small></div>
+    <div><div class="big">0</div><small>network routes</small></div>
+    <div><div class="big">6</div><small>hard limits</small></div>
+  </div>
+  <div class="page">06</div>
+</div>
+
+<div class="slide" id="s7">
+  <div class="grid"></div>
+  <div class="k">Declared, not implied</div>
+  <h2>Permission manifest + receipt</h2>
+  <ul>
+    <li><span class="mk">▸</span><span>Each run declares what it may touch, what it may not, <b>and what this layer does not stop</b>.</span></li>
+    <li><span class="mk">▸</span><span>The manifest is generated from the same policy the sandbox enforces — declare and enforce cannot drift.</span></li>
+    <li><span class="mk">▸</span><span>Its sha256 rides inside the receipt; every event hashes the previous one.</span></li>
+  </ul>
+  <div class="code" style="margin-top:26px">GET /api/runs/{id}/verify   →  {"chain_verified": true, "event_count": 8}
+GET /api/policy/strict      →  {"manifest_hash": "sha256:61ff3f91…"}</div>
+  <div class="page">07</div>
+</div>
+
+<div class="slide" id="s8">
+  <div class="grid"></div>
+  <div class="k">See it run</div>
+  <h2>Live on Vultr, TLS via Caddy</h2>
+  <div class="kpi" style="margin-top:0">
+    <div><div class="big" style="font-size:52px;letter-spacing:-2px">192-248-147-190<br>.sslip.io</div><small>public demo, Let's Encrypt</small></div>
+    <div><div class="big" style="font-size:52px;letter-spacing:-2px">84s</div><small>narrated demo video</small></div>
+  </div>
+  <ul style="margin-top:34px">
+    <li><span class="mk">▸</span><span><b>github.com/Trish7891/Totes</b> — README, CONTAINMENT.md, POLICY.md, one-command bootstrap</span></li>
+    <li><span class="mk">▸</span><span>Reproduce locally: <span class="mono" style="color:#8b98a8">python -m unittest discover -s tests</span></span></li>
+  </ul>
+  <div class="page">08</div>
+</div>
+
+<div class="slide" id="s9">
+  <div class="grid"></div>
+  <div class="k">Honest limits &amp; next</div>
+  <h2>What this is not</h2>
+  <ul>
+    <li><span class="mk">▸</span><span><b>Shared kernel.</b> A kernel bug escapes the cell; the executor interface was built so a microVM backend drops in without touching orchestration.</span></li>
+    <li><span class="mk">▸</span><span><b>Single-node run store.</b> Restarting the service drops history — receipts should be persisted first.</span></li>
+    <li><span class="mk">▸</span><span><b>Planner quality</b> is the model's, not the sandbox's; the sandbox only guarantees that what it does stays inside.</span></li>
+  </ul>
+  <p class="lead" style="margin-top:26px">Containment you can check beats containment you're asked to trust.</p>
+  <div class="page">09</div>
+</div>
+
+</body></html>
