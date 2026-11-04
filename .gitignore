@@ -5,3 +5,6 @@ __pycache__/
 safecell/static/*.map
 .pytest_cache/
 *.log
+docs/video/frames/
+docs/video/check*.png
+docs/video/end_*.png
