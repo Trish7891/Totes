@@ -65,8 +65,9 @@ touching the orchestration layer.
 ## Built with
 Python, FastAPI, bubblewrap (namespaces + rlimits), Server-Sent Events,
 hash-chained JSON event log, and a model behind any OpenAI-compatible endpoint
-(Vultr Serverless Inference in production, deterministic scripted planner as the
-demo fallback).
+via any OpenAI-compatible endpoint. The current deployment runs the
+deterministic scripted planner, a deliberate zero-cost fallback, so the demo is
+reproducible without an API key or a paid inference credit.
 
 ## Tags
 agents, sandboxing, security, code execution, verification, infrastructure

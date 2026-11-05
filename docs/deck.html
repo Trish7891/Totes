@@ -81,7 +81,8 @@
              · hash-chained receipt per run
                         │ plan(task) → code
                         ▼
-                 Planner (model)  ──▶  Vultr Serverless Inference
+                 Planner (model)  ──▶  OpenAI-compatible endpoint
+                                      (swappable; scripted fallback built in)
                         │ code (never executed in-process)
                         ▼
                  CELL  bubblewrap, per run, disposable

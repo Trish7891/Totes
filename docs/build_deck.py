@@ -18,7 +18,7 @@ NOTES = [
     "SafeCell — real work, zero blast radius. Live at 192-248-147-190.sslip.io, 84s demo video, 25 containment tests.",
     "The problem: an agent with a shell is a liability. One agent scanned 286 community skills and found a credential stealer disguised as a weather skill. Most products answer this with 'trust us'.",
     "Three steps: the model writes code (never runs it), the code runs in a disposable cell, and the run returns a receipt you can re-verify. One executor, no bypass, no unsafe mode.",
-    "Control layer on Vultr, planner via Serverless Inference, cells via bubblewrap, verifier hashes the event log. The app binds a high port; Caddy owns 80/443 for TLS.",
+    "Control layer on Vultr, planner behind any OpenAI-compatible endpoint with a scripted fallback, cells via bubblewrap, verifier hashes the event log. The app binds a high port; Caddy owns 80/443 for TLS.",
     "Every containment claim has a test that executes real code inside a real cell. Note the last line: kernel exploits are explicitly NOT denied, and the UI says so.",
     "Real output from the live box: /etc/shadow permission denied, /home does not exist, egress and DNS blocked, host write refused. Receipt chain verified.",
     "The permission manifest is generated from the same policy object the sandbox enforces, so the declaration cannot drift from enforcement. Its hash rides in the receipt.",
