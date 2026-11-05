@@ -1,0 +1,43 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>SafeCell cover 16:9</title>
+<style>
+  :root{--bg:#0a0c10;--txt:#e6edf3;--dim:#8b98a8;--acc:#6ee7b7;--acc2:#7dd3fc}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1920px;height:1080px;overflow:hidden;background:var(--bg)}
+  body{font-family:"Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--txt);position:relative}
+  .glow{position:absolute;border-radius:50%;filter:blur(160px)}
+  .g1{width:1400px;height:1400px;background:#6ee7b7;opacity:.20;top:-800px;left:-420px}
+  .g2{width:1300px;height:1300px;background:#7dd3fc;opacity:.16;bottom:-820px;right:-360px}
+  .grid{position:absolute;inset:0;background-image:linear-gradient(#1a212b 1px,transparent 1px),linear-gradient(90deg,#1a212b 1px,transparent 1px);
+        background-size:72px 72px;opacity:.45;mask-image:radial-gradient(circle at 42% 46%,#000 18%,transparent 76%)}
+  .wrap{position:relative;height:100%;padding:120px 140px;display:flex;flex-direction:column;justify-content:center}
+  .lock{width:84px;height:84px;border-radius:20px;background:linear-gradient(135deg,var(--acc),var(--acc2));position:relative;margin-bottom:52px}
+  .lock:before{content:"";position:absolute;width:26px;height:22px;border:4px solid #06231b;border-bottom:0;border-radius:13px 13px 0 0;top:16px;left:29px}
+  .lock:after{content:"";position:absolute;inset:32px 26px 22px;border:4px solid #06231b;border-radius:4px}
+  .kicker{font:650 15px/1 ui-monospace,Menlo,monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--acc);margin-bottom:34px}
+  h1{font-size:132px;line-height:.96;letter-spacing:-5px;font-weight:750}
+  h1 em{font-style:normal;background:linear-gradient(92deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  p{font-size:31px;line-height:1.5;color:var(--dim);max-width:1180px;margin-top:40px}
+  .tags{display:flex;gap:16px;margin-top:58px;flex-wrap:wrap}
+  .tag{font:16px/1 ui-monospace,Menlo,monospace;color:#a9b8c9;border:1px solid #27313f;border-radius:999px;padding:16px 24px;background:#0e1218}
+  .tag b{color:var(--acc);font-weight:700}
+  .corner{position:absolute;right:140px;bottom:104px;text-align:right;font:16px/1.75 ui-monospace,Menlo,monospace;color:#4d5a6b}
+  .bar{position:absolute;left:0;bottom:0;height:6px;width:100%;background:linear-gradient(90deg,var(--acc),var(--acc2),transparent 72%)}
+</style></head>
+<body>
+  <div class="glow g1"></div><div class="glow g2"></div><div class="grid"></div>
+  <div class="wrap">
+    <div class="lock"></div>
+    <div class="kicker">Vultr Agent Rush · Blast Radius Zero</div>
+    <h1>Real work.<br><em>Zero blast radius.</em></h1>
+    <p>An agent plans the task, writes the code, and runs it inside a sealed disposable cell — no network, no host files, hard resource limits — then hands back a hash-chained receipt you can verify.</p>
+    <div class="tags">
+      <div class="tag"><b>25</b> containment tests</div>
+      <div class="tag"><b>0</b> network routes</div>
+      <div class="tag"><b>bubblewrap</b> namespaces</div>
+      <div class="tag"><b>verified</b> receipts</div>
+    </div>
+    <div class="corner">safecell · agent that cannot leave the room<br>192-248-147-190.sslip.io</div>
+  </div>
+  <div class="bar"></div>
+</body></html>
