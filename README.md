@@ -7,10 +7,18 @@ accomplish it, and that code runs inside a sealed, disposable cell. The output
 you see is real executed output, and every run ends with a hash-chained receipt
 that proves the log you read is the log that ran.
 
-**Live:** https://192-248-147-190.sslip.io/ · **Demo video (84s):** [docs/video/demo.mp4](docs/video/demo.mp4) · **Slide deck:** [docs/safecell-deck.pptx](docs/safecell-deck.pptx)
+**Live:** https://192-248-147-190.sslip.io/ · **Demo (76s, with NEAR anchoring):** [docs/video2/demo-near.mp4](docs/video2/demo-near.mp4) · **Slide deck:** [docs/safecell-deck.pptx](docs/safecell-deck.pptx)
 
-Built for the **Vultr Agent Rush: Blast Radius Zero** track
-a feature we added, it is the product.
+**NEAR Hackathon submission — tracks: AI Security & Defense, Agent Economy.**
+The sandbox and its local hash chain existed before the hackathon; the NEAR
+integration was built inside the submission window (on-chain receipt anchoring,
+the policy contract, and the function-call key scoping). Baseline and diff are
+tagged: [`pre-hackathon`](https://github.com/Trish7891/Totes/releases/tag/pre-hackathon)
+→ [`hackathon-submission`](https://github.com/Trish7891/Totes/compare/pre-hackathon...hackathon-submission).
+Judge steps are under [Try it in 60 seconds](#try-it-in-60-seconds).
+
+Earlier: entered **Vultr Agent Rush: Blast Radius Zero**, where the containment
+model and receipt chain were built.
 
 ---
 
@@ -94,6 +102,30 @@ curl localhost:8000/api/policy/strict/manifest.md
 
 See [docs/POLICY.md](docs/POLICY.md) for the `strict` preset rendered.
 
+## Try it in 60 seconds
+
+Public instance, no signup: **https://192-248-147-190.sslip.io/**
+
+1. Click the chip labelled **sha256 + anchor**, then **Run in cell**.
+   → The execution stream shows the actual Python the planner wrote, its stdout,
+   and the digest. It is a real hash; check it: `printf safecell | sha256sum`.
+2. Watch the line under the answer. Within ~30–40 s it goes green:
+   `anchored on NEAR testnet · seq N · head … · tx … · match=true`
+   → `anchoring…` means the testnet RPC round-trip is still in flight (~5 s per
+   call); it is not a failure.
+3. Click the transaction hash. NEAR Blocks (testnet) shows `Call anchor` from
+   `agent3.safecell-neartest2.testnet` on `policy.safecell-neartest2.testnet`.
+4. Check the same claim from the API:
+   ```bash
+   curl -s https://192-248-147-190.sslip.io/api/runs/$ID/proof | python3 -m json.tool
+   # "match": true, plus contract.head and contract.chain_len
+   ```
+5. The **Permission manifest** panel on the page lists every capability the cell
+   has and does not have. `python -m unittest tests.test_containment` reproduces
+   those denials locally, one per assertion.
+
+Everything above runs against **NEAR testnet**; no mainnet funds are involved.
+
 ## On-chain receipts (NEAR)
 
 The local chain is tamper-evident; it is not tamper-proof. The head of every run
@@ -130,7 +162,7 @@ sudo apt-get install -y bubblewrap        # the only system dependency
 
 python -m safecell.cli doctor             # is real isolation available?
 python -m safecell.cli demo               # runs the containment demo, live
-python -m unittest tests.test_containment # 16 containment assertions
+python -m unittest tests.test_containment # 17 containment assertions
 
 uvicorn safecell.api:app --host 0.0.0.0 --port 8000   # web UI on :8000
 ```

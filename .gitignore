@@ -10,3 +10,8 @@ docs/video/check*.png
 docs/video/end_*.png
 .secrets/
 contract/target/
+docs/video2/frames/
+docs/video2/concat.txt
+docs/video2/demo.mp4
+docs/video2/final.mp4
+docs/video2/timeline.json
