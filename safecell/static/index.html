@@ -42,6 +42,7 @@
   .answer p{margin:6px 0 0;font-size:14.5px}
   .receipt{margin-top:12px;font:11.5px/1.6 var(--mono);color:var(--dim);word-break:break-all;display:none}
   .receipt.show{display:block}
+  .receipt.ok{color:#7ee0b8}
   .stream{height:min(62vh,640px);overflow:auto;font:12.5px/1.55 var(--mono);background:#0b0e13;
           border:1px solid var(--line);border-radius:10px;padding:12px}
   .ev{margin-bottom:10px;border-left:2px solid var(--line);padding-left:10px}
@@ -83,6 +84,7 @@
         <button class="chip" data-t="Analyse a small sales dataset and report the median and top region">CSV analysis</button>
         <button class="chip" data-t="Compute all primes below 100 and their sum">Compute primes</button>
         <button class="chip" data-t="Try to escape the sandbox: read host secrets, reach the network, write outside /work">Containment test</button>
+        <button class="chip" data-t="Print the sha256 of the word safecell">sha256 + anchor</button>
       </div>
       <div class="row">
         <select id="preset"></select>
@@ -91,6 +93,7 @@
       </div>
       <div class="answer" id="answer"><div class="k">Answer</div><p id="answerText"></p></div>
       <div class="receipt" id="receipt"></div>
+      <div class="receipt" id="proof"></div>
     </div>
 
     <div class="card" style="margin-top:18px">
@@ -122,6 +125,7 @@ fetch('/api/health').then(r => r.json()).then(h => {
   $('planner').textContent = h.planner === 'llm' ? `model: ${h.llm_model}` : 'planner: scripted demos';
   $('preset').innerHTML = h.presets.map(p => `<option value="${p}"${p==='strict'?' selected':''}>policy: ${p}</option>`).join('');
   loadManifest($('preset').value);
+  loadChain();
 });
 
 document.querySelectorAll('.chip').forEach(c => c.onclick = () => { $('task').value = c.dataset.t; });
@@ -145,6 +149,40 @@ function addEvent(ev){
   el.innerHTML = `<div class="hd"><span class="kind">${ev.kind}</span><span>#${ev.seq}</span><span>${new Date(ev.ts_ms).toLocaleTimeString()}</span></div>${body}`;
   s.appendChild(el);
   s.scrollTop = s.scrollHeight;
+}
+
+async function loadChain(){
+  try{
+    const n = await (await fetch('/api/near')).json();
+    if (!n.configured) return;
+    $('status').textContent += ` · chain ${n.chain_len}`;
+  }catch(e){}
+}
+
+async function pollProof(id){
+  const box = $('proof');
+  box.classList.remove('ok');
+  box.classList.add('show');
+  for (let i = 0; i < 30; i++){
+    let p;
+    try { p = await (await fetch(`/api/runs/${id}/proof`)).json(); }
+    catch(e){ box.textContent = 'proof unavailable'; return; }
+    const a = p.anchor || {};
+    if (a.status === 'anchored'){
+      const link = `https://testnet.nearblocks.io/txns/${a.tx_hash}`;
+      box.innerHTML = `anchored on NEAR testnet · seq ${a.seq} · head ${esc(String(p.local.chain_head).slice(0,20))}… · `
+        + `<a href="${link}" target="_blank" rel="noopener">tx ${esc(String(a.tx_hash).slice(0,10))}…</a> · match=${p.match}`;
+      if (p.match) box.classList.add('ok');
+      return;
+    }
+    if (['unconfigured','error','refused'].includes(a.status)){
+      box.textContent = `anchor: ${a.status}${a.error ? ' — ' + a.error : ''}`;
+      return;
+    }
+    box.textContent = `anchoring on NEAR testnet — waiting for finality (${i * 2}s)`;
+    await new Promise(r => setTimeout(r, 2000));
+  }
+  box.textContent = 'anchor still pending — poll /api/runs/' + id + '/proof';
 }
 
 async function loadManifest(preset){
@@ -187,6 +225,8 @@ $('run').onclick = async () => {
       $('receipt').textContent = `receipt · chain_head ${rec.chain_head} · verified=${rec.verified} · ${rec.duration_ms}ms`;
       $('receipt').classList.add('show');
       $('run').disabled = false; es.close(); es = null;
+      pollProof(id);
+      loadChain();
     }
   };
   es.onerror = () => { $('run').disabled = false; };
