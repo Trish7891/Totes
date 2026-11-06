@@ -178,11 +178,22 @@ def prove_run(run_id: str):
     if not NEAR_ANCHOR.configured:
         proof["note"] = "NEAR not configured on this instance; nothing to compare against"
         return proof
-    try:
-        record = NEAR_ANCHOR.lookup(run_id)
-        chain = NEAR_ANCHOR.chain()
-    except NearError as e:
-        proof["error"] = str(e)
+    # A receipt that the anchor says landed can still be a block behind on the
+    # RPC's view, so give the read the same few seconds the write took.
+    import time as _t
+    record, chain, last_err = None, None, None
+    for attempt in range(4):
+        try:
+            record = NEAR_ANCHOR.lookup(run_id)
+            chain = NEAR_ANCHOR.chain()
+            last_err = None
+            if record or (run.anchor or {}).get("status") != "anchored":
+                break
+        except NearError as e:
+            last_err = e
+        _t.sleep(1.5)
+    if chain is None:
+        proof["error"] = str(last_err)
         return JSONResponse(proof, status_code=503)
     proof["onchain"] = record
     proof["contract"] = {"head": chain["head"], "chain_len": chain["chain_len"],

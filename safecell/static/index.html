@@ -122,6 +122,7 @@ let es = null;
 fetch('/api/health').then(r => r.json()).then(h => {
   $('dot').classList.toggle('bad', !h.sandbox.available);
   $('status').textContent = h.sandbox.available ? `sandbox: ${h.sandbox.bubblewrap.split('/').pop()} ok` : 'sandbox unavailable';
+  $('status').dataset.base = $('status').textContent;
   $('planner').textContent = h.planner === 'llm' ? `model: ${h.llm_model}` : 'planner: scripted demos';
   $('preset').innerHTML = h.presets.map(p => `<option value="${p}"${p==='strict'?' selected':''}>policy: ${p}</option>`).join('');
   loadManifest($('preset').value);
@@ -154,8 +155,10 @@ function addEvent(ev){
 async function loadChain(){
   try{
     const n = await (await fetch('/api/near')).json();
-    if (!n.configured) return;
-    $('status').textContent += ` · chain ${n.chain_len}`;
+    if (!n.configured || !n.chain_len) return;
+    const base = ($('status').dataset.base || $('status').textContent).split(' · chain ')[0];
+    $('status').dataset.base = base;
+    $('status').textContent = `${base} · chain ${n.chain_len}`;
   }catch(e){}
 }
 
