@@ -215,6 +215,25 @@ class ScriptedPlanner:
                              "south (57 units across two entries). Every number was computed by "
                              "code inside the cell, not estimated.")),
             ]
+        if any(k in t for k in ("sha256", "sha-256", "hash", "digest", "checksum")):
+            m = (re.search(r"['\"]([^'\"]{1,80})['\"]", task)
+                 or re.search(r"\bof (?:the )?(?:word |string |text )?([A-Za-z0-9_.:/-]{1,40})",
+                              task, re.I))
+            target = m.group(1) if m else "safecell"
+            return [
+                Step(thought=f"Hash the literal from the task ({target!r}) with stdlib sha256.",
+                     code=("import datetime, hashlib\n"
+                           f"s = {target!r}\n"
+                           "print('input', repr(s))\n"
+                           "print('sha256', hashlib.sha256(s.encode()).hexdigest())\n"
+                           "print('utc', datetime.datetime.now(datetime.UTC)"
+                           ".strftime('%Y-%m-%dT%H:%M:%SZ'))\n")),
+                Step(thought="Report the digest the cell produced.",
+                     done=True,
+                     answer=("The digest above was computed by hashlib inside the cell from "
+                             "the literal in the task; nothing was estimated and the input "
+                             "is echoed alongside it.")),
+            ]
         if any(k in t for k in ("prime", "math", "compute", "fib")):
             return [
                 Step(thought="Compute primes under the limit by hand, no libraries.",
@@ -243,9 +262,11 @@ class ScriptedPlanner:
                        "print('files', os.listdir('.'))\n")),
             Step(thought="Report what the cell looks like.",
                  done=True,
-                 answer=("Ran inside a fresh cell: python "
-                         + os.environ.get("SAFECELL_PY", "")
-                         + "stdlib only, empty /work, no host state available.")),
+                 answer=("The scripted planner has no model step for "
+                         + repr(task[:120])
+                         + ", so it inspected the cell instead: python "
+                         + os.environ.get("SAFECELL_PY", "stdlib only")
+                         + ", empty /work, no host state reachable.")),
         ]
 
     def next_step(self, task: str, history: list[dict]) -> Step:

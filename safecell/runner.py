@@ -15,6 +15,7 @@ from typing import Any
 
 from . import manifest as manifest_mod
 from .events import EventLog
+from .near_anchor import SERVICE as NEAR_ANCHOR
 from .planner import PlannerError, make_planner
 from .policy import get_preset
 from .sandbox import exec_in_cell, preflight
@@ -36,6 +37,7 @@ class Run:
     subscribers: list[queue.Queue] = field(default_factory=list)
     started_ms: int | None = None
     finished_ms: int | None = None
+    anchor: dict[str, Any] | None = None
 
     def __post_init__(self):
         self.log = EventLog(run_id=self.id)
@@ -66,6 +68,7 @@ class Run:
             "answer": self.answer,
             "error": self.error,
             "steps": self.steps,
+            "anchor": self.anchor,
             "receipt": self.log.receipt({
                 "policy_fingerprint": policy.fingerprint(),
                 "manifest_hash": manifest_mod.manifest_hash(
@@ -104,6 +107,44 @@ class RunStore:
 
 
 STORE = RunStore()
+
+
+def anchor_receipt(run: Run, timeout_s: float = 15.0) -> dict[str, Any]:
+    """Write the finished receipt head to NEAR, bounded so a slow node cannot
+    hold the run open. Failure is reported, never raised: execution succeeded or
+    failed on its own terms regardless of what the chain does.
+    """
+    if not NEAR_ANCHOR.configured:
+        return {"status": "unconfigured",
+                "note": "set NEAR_CONTRACT / NEAR_AGENT_ACCOUNT / NEAR_AGENT_KEY to anchor"}
+    log = run.log
+    if log is None:
+        return {"status": "refused", "error": "run has no event log"}
+    if not log.verify():
+        return {"status": "refused", "error": "local chain failed verification"}
+
+    head = log.head
+    # One dict, shared with the run: if the anchor lands after the join timeout,
+    # /api/runs and /proof see it update instead of reading a stale "timeout".
+    box: dict[str, Any] = {"status": "pending", "receipt_hash": head, "execution_id": run.id}
+    run.anchor = box
+
+    def work() -> None:
+        try:
+            box.update(NEAR_ANCHOR.anchor(run.id, head))
+        except Exception as e:  # pragma: no cover - network side
+            box.update({"status": "error", "error": str(e)})
+        finally:
+            box["receipt_hash"] = head
+            box["execution_id"] = run.id
+
+    worker = threading.Thread(target=work, daemon=True)
+    worker.start()
+    worker.join(timeout_s)
+    if worker.is_alive():
+        box["note"] = (f"still in flight after {timeout_s:.0f}s — "
+                       f"poll /api/runs/{run.id}/proof")
+    return box
 
 
 def execute(run: Run) -> None:
@@ -179,6 +220,7 @@ def execute(run: Run) -> None:
             "chain_head": run.log.head,
             "verified": run.log.verify(),
         })
+        run.anchor = anchor_receipt(run)
         run.close_streams()
 
 

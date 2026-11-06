@@ -13,6 +13,8 @@ from pydantic import BaseModel, Field
 
 from . import manifest as manifest_mod
 from .policy import PRESETS
+from .near_anchor import SERVICE as NEAR_ANCHOR
+from .near_client import NearError
 from .planner import LLMPlanner
 from .runner import STORE, start
 from .sandbox import preflight
@@ -43,6 +45,7 @@ def health():
         "planner": "llm" if llm.configured else "scripted",
         "llm_model": llm.model or None,
         "presets": sorted(PRESETS),
+        "near": {"configured": NEAR_ANCHOR.configured, "contract": NEAR_ANCHOR.contract or None},
     }
 
 
@@ -133,6 +136,61 @@ def verify_run(run_id: str):
          "event_count": len(run.log.events)},
         status_code=200 if valid else 409,
     )
+
+
+@app.get("/api/near")
+def near_state():
+    if not NEAR_ANCHOR.configured:
+        return {"configured": False,
+                "hint": "set NEAR_CONTRACT, NEAR_AGENT_ACCOUNT and NEAR_AGENT_KEY"}
+    try:
+        state = NEAR_ANCHOR.chain()
+        state["verify_chain"] = NEAR_ANCHOR.verify_chain()
+        state["configured"] = True
+        return state
+    except NearError as e:
+        return JSONResponse({"configured": True, "error": str(e)}, status_code=503)
+
+
+@app.get("/api/runs/{run_id}/proof")
+def prove_run(run_id: str):
+    """Compare the local receipt against the on-chain anchor.
+
+    `match` is only true when the local log still verifies *and* its head is the
+    hash that was anchored. Editing an event breaks the first check; rewriting
+    the whole log with fresh hashes breaks the second.
+    """
+    run = STORE.get(run_id)
+    if not run:
+        raise HTTPException(404, "run not found")
+    log = run.log
+    local_verified = bool(log and log.verify())
+    local_head = log.head if log else None
+    proof = {
+        "run_id": run_id,
+        "local": {"verified": local_verified, "chain_head": local_head,
+                  "event_count": len(log.events) if log else 0},
+        "anchor": run.anchor,
+        "onchain": None,
+        "contract": None,
+        "match": False,
+    }
+    if not NEAR_ANCHOR.configured:
+        proof["note"] = "NEAR not configured on this instance; nothing to compare against"
+        return proof
+    try:
+        record = NEAR_ANCHOR.lookup(run_id)
+        chain = NEAR_ANCHOR.chain()
+    except NearError as e:
+        proof["error"] = str(e)
+        return JSONResponse(proof, status_code=503)
+    proof["onchain"] = record
+    proof["contract"] = {"head": chain["head"], "chain_len": chain["chain_len"],
+                         "verify_chain": NEAR_ANCHOR.verify_chain()}
+    proof["match"] = bool(
+        record and local_verified and record.get("receipt_hash") == local_head
+    )
+    return proof
 
 
 @app.get("/api/runs")

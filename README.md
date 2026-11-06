@@ -94,6 +94,32 @@ curl localhost:8000/api/policy/strict/manifest.md
 
 See [docs/POLICY.md](docs/POLICY.md) for the `strict` preset rendered.
 
+## On-chain receipts (NEAR)
+
+The local chain is tamper-evident; it is not tamper-proof. The head of every run
+is therefore written to a NEAR contract, which makes the sequence of heads
+public and append-only — rewriting history would need the contract's chain, not
+just this database.
+
+The same contract enforces the spend policy the agent runs under: a per-call
+limit, a daily limit and an action allowlist, checked on chain. The agent
+account holds a **function-call key scoped to `anchor()`** — it cannot transfer,
+deploy, or sign anything else, so a compromised host can burn gas and nothing
+more.
+
+```
+local chain head  ==  contract receipt for this run  ==  contract head
+```
+
+`GET /api/runs/{id}/proof` returns those three values plus `match`, and
+`GET /api/near` returns the policy and remaining daily allowance. Full detail,
+including how to reproduce it: [`docs/NEAR.md`](docs/NEAR.md).
+
+```bash
+curl -s localhost:8000/api/runs/$ID/proof | python3 -m json.tool
+# "match": true
+```
+
 ## Quickstart
 
 ```bash
@@ -123,9 +149,11 @@ export SAFECELL_MODEL="<model-id>"
 export SAFECELL_API_KEY="<key>"
 ```
 
-With no model configured, the deterministic `ScriptedPlanner` handles three
-built-in tasks so the product is always demonstrable end to end — the demo can
-never fail because a model was slow.
+With no model configured, the deterministic `ScriptedPlanner` handles a handful
+of built-in task families (containment probe, CSV analysis, hashing, primes) and
+otherwise inspects the cell, so the product is always demonstrable end to end —
+the demo can never fail because a model was slow. It is a deliberate zero-cost
+fallback, not a stand-in for a model.
 
 ## API
 
@@ -138,6 +166,8 @@ never fail because a model was slow.
 | `GET` | `/api/health` | Sandbox availability + planner backend |
 | `GET` | `/api/policy/{preset}` | Permission manifest + its hash |
 | `GET` | `/api/policy/{preset}/manifest.md` | Same manifest as markdown |
+| `GET` | `/api/runs/{id}/proof` | Local head, on-chain receipt, `match` flag |
+| `GET` | `/api/near` | Contract policy, chain head, remaining daily allowance |
 
 Presets: `paranoid`, `strict` (default), `default`, `demo`.
 

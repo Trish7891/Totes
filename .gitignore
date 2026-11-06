@@ -8,3 +8,5 @@ safecell/static/*.map
 docs/video/frames/
 docs/video/check*.png
 docs/video/end_*.png
+.secrets/
+contract/target/
