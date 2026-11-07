@@ -209,8 +209,10 @@ Presets: `paranoid`, `strict` (default), `default`, `demo`.
 
 ## Vultr deployment
 
-The control layer is a Vultr VM; the model calls go to Vultr Serverless
-Inference. Nothing about the design assumes a laptop.
+The control layer is a Vultr VM. **Serverless Inference is not used** — no free
+inference credits were obtained, so the deployed instance runs the deterministic
+`ScriptedPlanner` and makes no model calls at all. The app is otherwise
+host-agnostic; nothing about the design assumes a laptop.
 
 1. Create the VM (Ubuntu 24.04, 2 vCPU / 4 GB is ample), open 80/443.
 2. `apt install bubblewrap python3-venv`, clone, `pip install -r requirements.txt`.
@@ -227,7 +229,7 @@ it — and see *Limitations* before treating it as a hard multi-tenant boundary.
 2. **0:40** Ask the agent to escape: host secrets, network, host write.
 3. **1:20** The containment moment — `/etc/shadow: PermissionError`,
    `/home: FileNotFoundError`, `EGRESS: BLOCKED`, and nothing on the host.
-4. **2:00** `python -m unittest tests.test_containment -v` — 16 green.
+4. **2:00** `python -m unittest tests.test_containment -v` — 17 green.
 5. **2:30** `curl /api/runs/{id}/verify` → `chain_verified: true`.
 
 ## Limitations (stated plainly)

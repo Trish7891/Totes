@@ -2,8 +2,8 @@
 
 Two backends, same interface:
 
-* `LLMPlanner`  — any OpenAI-compatible chat endpoint (Vultr Serverless
-  Inference, Ollama, vLLM). The model never sees the host; it only ever
+* `LLMPlanner` — any OpenAI-compatible chat endpoint (Ollama, vLLM, or a hosted
+  API you have credits for). The model never sees the host; it only ever
   receives task text and the stdout of sandboxed runs.
 * `ScriptedPlanner` — deterministic plans for the demo tasks, so the product
   works end-to-end with no API key and the demo can't fail because a model
