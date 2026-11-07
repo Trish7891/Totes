@@ -172,11 +172,15 @@ failing open (`503` with an explanation). There is no "unsafe mode".
 
 ## Using a real model
 
-The planner speaks any OpenAI-compatible endpoint. Point it at Vultr Serverless
-Inference (or Ollama locally):
+The planner speaks any OpenAI-compatible endpoint. The public deployment runs
+without one, and **Vultr Serverless Inference is not used in this submission** —
+no free inference credits were obtained, so we are not claiming that integration.
+The honest position is stated here rather than implied: the demo runs on the
+deterministic planner, and switching to a hosted model is a three-variable change
+if you have a key for any OpenAI-compatible endpoint (Ollama works too):
 
 ```bash
-export SAFECELL_LLM_BASE_URL="https://api.vultrinference.com/v1"
+export SAFECELL_LLM_BASE_URL="http://127.0.0.1:11434/v1"   # or any provider
 export SAFECELL_MODEL="<model-id>"
 export SAFECELL_API_KEY="<key>"
 ```

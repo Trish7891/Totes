@@ -85,7 +85,9 @@ which I can do once I have access or you can paste the same way.
 ## B2. AWS instead of Vultr
 
 Technically fine, **but not rules-compliant for the Vultr track** — Challenge 1
-requires the app deployed on Vultr with Vultr Serverless Inference. Use this for
+wants the app deployed on Vultr and using Vultr Serverless Inference, and we are
+not entering that way: no free inference credits were obtained, and the Vultr
+entry states that plainly rather than claiming the integration. Use this for
 other venues (e.g. the NEAR hackathon, which has no host requirement).
 
 EC2 console → Launch instance:
